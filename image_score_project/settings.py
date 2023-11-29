@@ -33,8 +33,7 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://image-scoring-build-d26039211250.herokuapp.com",
-    "image-scoring-build-d26039211250.herokuapp.com",
-    "image-scoring-build-d26039211250.herokuapp.com/image-score/upload"
+    "https://image-scoring-build-d26039211250.herokuapp.com/image-score/upload"
 ]
 # Application definition
 
