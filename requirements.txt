@@ -1,6 +1,6 @@
 scikit-learn
 numpy
-opencv-python
 tqdm
 Django==4.2.7
 typing_extensions
+opencv-python-headless==4.2.0.32
