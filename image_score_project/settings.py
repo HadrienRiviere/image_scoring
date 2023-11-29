@@ -26,7 +26,10 @@ SECRET_KEY = 'django-insecure-#!p@d3(u7@mh77*&el#(a$go456pqi1=-#mens+$eth8mc2q2$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "image-scoring-build-d26039211250.herokuapp.com/image-score/upload",
+    "image-scoring-build-d26039211250.herokuapp.com"
+]
 
 
 # Application definition
