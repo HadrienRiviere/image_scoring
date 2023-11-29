@@ -2,3 +2,4 @@ scikit-learn
 numpy
 opencv-python
 tqdm
+Django==4.2.7
