@@ -99,7 +99,7 @@ class DataClassifier:
         faces = self.has_face(img)
         bokeh = self.bokeh_effect(img, faces)
         bokeh_bonus = np.sqrt((2*bokeh-0.5*self.is_sharp(img))) if bokeh != 0 else 0.5
-        full_score = ((self.nice_lighting(colored) + bokeh)/2)*(self.is_smiling(img, faces)*30 + self.has_opened_eyes(img, faces)*30 + 40)*bokeh_bonus
+        full_score = ((self.nice_lighting(colored) + bokeh)/2)*(self.is_smiling(img, faces)*30 + self.has_eyes(img, faces)*30 + 40)*bokeh_bonus
         return full_score
 
 def upload_image(request):
