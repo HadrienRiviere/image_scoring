@@ -32,6 +32,13 @@
     <h2>Image with Score</h2>
     <img src="{{ image_path }}" alt="Uploaded Image">
     <p>Score: {{ score }}</p>
+    <p><i>(Above 30% could be considered to be printable)</i></p>
+    <h3>New sample ?</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Back to Upload">
+    </form>
 </body>
 </html>
 

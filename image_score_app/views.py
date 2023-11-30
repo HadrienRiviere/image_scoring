@@ -1,27 +1,23 @@
-from django.shortcuts import render, redirect
-from django.db.utils import OperationalError
-from .forms import ImageUploadForm
-from .models import UploadedImage
-import base64
-import numpy as np
-import logging
-from typing_extensions import dataclass_transform
-
-import random
-import cv2
-from tqdm import tqdm
-from typing import Optional, List, Any
 from dataclasses import dataclass
-from sklearn.model_selection import train_test_split
+import logging
 
-import os
-from collections import Counter
+import base64
+import cv2
+from django.db.utils import OperationalError
+from django.contrib import messages
+import numpy as np
 
+from .forms import ImageUploadForm
 
-IMG_SIZE = [256, 256]
 
 @dataclass
 class DataClassifier:
+    """
+    Scorer for images: if above 30%, we shoudl consider this a success.
+    Very basic approach of the topic:
+    - Analysis of luminosity, blurness
+    - Face, smile and eyes detection
+    """
     face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     eye_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
     smile_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_smile.xml')
@@ -41,8 +37,7 @@ class DataClassifier:
                 smile_cnt += 1
         return 1 if len(faces) == smile_cnt and len(faces) != 0 else 0
 
-    def has_opened_eyes(self, img, faces):
-        faces = self.has_face(img)
+    def has_eyes(self, img, faces):
         eyes_cnt = 0
         if len(faces) ==0:
             return 0.0
@@ -78,15 +73,29 @@ class DataClassifier:
         return np.min([300, blur])/300
 
     def infer(self, input_file):
+        """
+        Retrieve the picture data, load it and infer the score from all the features we want to detect
+        :param input_file: input path from form upload
+        :return: score and if the quality is sufficient
+        """
         input_file = "uploads/" + input_file
-        image = cv2.imread(input_file, 0)
-        image_colored = cv2.imread(input_file)
-        score = self.infer_scores(image, image_colored)
+        try:
+            image = cv2.imread(input_file, 0)
+            image_colored = cv2.imread(input_file)
+            score = self.infer_scores(image, image_colored)
+        except cv2.error:
+            return None
         if score > 30:
             return (score, "Success")
         return (score, "Fail")
 
     def infer_scores(self, img, colored):
+        """
+        Retrieve the faces detected, the bokeh factor (sharpness of the face(s) detected
+        :param img: image
+        :param colored: colored image
+        :return: score
+        """
         faces = self.has_face(img)
         bokeh = self.bokeh_effect(img, faces)
         bokeh_bonus = np.sqrt((2*bokeh-0.5*self.is_sharp(img))) if bokeh != 0 else 0.5
@@ -97,6 +106,7 @@ def upload_image(request):
     if request.method == 'POST':
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
+            error_message = ""
             image = form.cleaned_data['image']
             image_content = base64.b64encode(image.file.read())
             classifier = DataClassifier()
@@ -106,7 +116,10 @@ def upload_image(request):
             except OperationalError:
                 logging.debug("Couldn't push to DB")
             score = classifier.infer(input_file=image.name)
-
+            if score == None:
+                messages.error(request, f"Error during preprocessing: Upload a new resource")
+                return render(request, 'image_score_app/upload_image.html', {'form': form, "error": error_message})
+            score = f"{str(round(score[0], 1))}% Likely to be printable photo: {score[1]}"
             return render(request, 'image_score_app/display_image.html', {'image': image_content, 'score': score})
     else:
         form = ImageUploadForm()

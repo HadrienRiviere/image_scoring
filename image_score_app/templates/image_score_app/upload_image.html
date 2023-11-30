@@ -51,6 +51,13 @@
     <h1>Picture Uploader</h1>
     <div class="icon">&#x1F4F7;</div> <!-- Photo icon -->
     <p>"Programming is not about what you know; it's about what you can figure out."</p>
+    {% if messages %}
+        <div class="error-message">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        </div>
+    {% endif %}
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form }}
